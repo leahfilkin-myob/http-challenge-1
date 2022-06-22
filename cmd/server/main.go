@@ -12,6 +12,7 @@ func main() {
 	http.HandleFunc("/totalUniqueWords", handler.TotalUniqueWordCount)
 	http.HandleFunc("/maximumWordLength", handler.MaximumWordLength)
 	http.HandleFunc("/averageWordLength", handler.AverageWordLength)
+	http.HandleFunc("/sourceIPAddress", handler.SourceIPAddress)
 
 	http.ListenAndServe(":8090", nil)
 }

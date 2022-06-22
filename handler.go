@@ -67,6 +67,12 @@ func AverageWordLength(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func SourceIPAddress(w http.ResponseWriter, req *http.Request) {
+	ip := req.RemoteAddr
+	log.Printf("Found IP Address: %v", ip)
+	fmt.Fprintf(w, "Source IP Address: %v\n", ip)
+}
+
 func DecodeRequestBody(body io.ReadCloser, w http.ResponseWriter) (text, error) {
 	var t text
 	dec := json.NewDecoder(body)
