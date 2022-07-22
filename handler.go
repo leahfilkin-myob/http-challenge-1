@@ -2,78 +2,75 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
 
-type text struct {
-	TextData string `json:"text"`
+type response struct {
+	WordCount   int
+	UniqueCount int
+	MaxWord     int
+	AvgWord     float64
+	SourceIP    string
 }
 
-func TotalWordCount(w http.ResponseWriter, req *http.Request) {
-	t, err := DecodeRequestBody(req.Body, w)
-	if err == nil {
-		count := len(strings.Fields(t.TextData))
-		log.Printf("Found word count: %v", count)
-		fmt.Fprintf(w, "Word count: %v\n", count)
-	}
+func TotalWordCount(t []string) int {
+	return len(t)
 }
 
-func TotalUniqueWordCount(w http.ResponseWriter, req *http.Request) {
-	t, err := DecodeRequestBody(req.Body, w)
-	if err == nil {
-		words := strings.Fields(t.TextData)
-		unique := make(map[string]struct{})
-		for _, v := range words {
-			if _, ok := unique[v]; !ok {
-				unique[v] = struct{}{}
-			}
+func TotalUniqueWordCount(t []string) int {
+	unique := make(map[string]struct{})
+	for _, v := range t {
+		if _, ok := unique[v]; !ok {
+			unique[v] = struct{}{}
 		}
-		count := len(unique)
-		log.Printf("Found unique word count: %v", count)
-		fmt.Fprintf(w, "Unique word count: %v\n", count)
 	}
+	return len(unique)
 }
 
-func MaximumWordLength(w http.ResponseWriter, req *http.Request) {
-	t, err := DecodeRequestBody(req.Body, w)
-	if err == nil {
-		words := strings.Fields(t.TextData)
-		maxCount := 0
-		for _, v := range words {
-			if maxCount < len(v) {
-				maxCount = len(v)
-			}
+func MaximumWordLength(t []string) int {
+	maxCount := 0
+	for _, v := range t {
+		if maxCount < len(v) {
+			maxCount = len(v)
 		}
-		log.Printf("Found maximum word length: %v", maxCount)
-		fmt.Fprintf(w, "Maximum word length: %v\n", maxCount)
+	}
+	return maxCount
+}
+
+func AverageWordLength(t []string) float64 {
+	totalLetterCount := 0.0
+	for _, v := range t {
+		totalLetterCount += float64(len(v))
+	}
+	return totalLetterCount / float64(len(t))
+}
+func AllStats(w http.ResponseWriter, req *http.Request) {
+	/*	t, err := DecodeRequestBody(req.Body, w)
+	 */
+	t, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		panic(err)
+	}
+	defer req.Body.Close()
+
+	text := strings.Fields(string(t))
+	resp := response{
+		TotalWordCount(text),
+		TotalUniqueWordCount(text),
+		MaximumWordLength(text),
+		AverageWordLength(text),
+		req.RemoteAddr,
+	}
+	w.WriteHeader(http.StatusOK)
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(resp); err != nil {
+		panic(err)
 	}
 }
 
-func AverageWordLength(w http.ResponseWriter, req *http.Request) {
-	t, err := DecodeRequestBody(req.Body, w)
-	if err == nil {
-		words := strings.Fields(t.TextData)
-		totalLetterCount := 0.0
-		for _, v := range words {
-			totalLetterCount += float64(len(v))
-		}
-		var av = totalLetterCount / float64(len(words))
-		log.Printf("Found average word length: %v", av)
-		fmt.Fprintf(w, "Average word length: %v\n", av)
-	}
-}
-
-func SourceIPAddress(w http.ResponseWriter, req *http.Request) {
-	ip := req.RemoteAddr
-	log.Printf("Found IP Address: %v", ip)
-	fmt.Fprintf(w, "Source IP Address: %v\n", ip)
-}
-
-func DecodeRequestBody(body io.ReadCloser, w http.ResponseWriter) (text, error) {
+/*func DecodeRequestBody(body io.ReadCloser, w http.ResponseWriter) (text, error) {
 	var t text
 	dec := json.NewDecoder(body)
 	err := dec.Decode(&t)
@@ -83,3 +80,4 @@ func DecodeRequestBody(body io.ReadCloser, w http.ResponseWriter) (text, error) 
 	}
 	return t, err
 }
+*/

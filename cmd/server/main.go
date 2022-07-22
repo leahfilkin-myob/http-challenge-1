@@ -8,11 +8,7 @@ import (
 
 func main() {
 	log.Print("Starting handler...")
-	http.HandleFunc("/totalWordCount", handler.TotalWordCount)
-	http.HandleFunc("/totalUniqueWords", handler.TotalUniqueWordCount)
-	http.HandleFunc("/maximumWordLength", handler.MaximumWordLength)
-	http.HandleFunc("/averageWordLength", handler.AverageWordLength)
-	http.HandleFunc("/sourceIPAddress", handler.SourceIPAddress)
+	http.HandleFunc("/", handler.AllStats)
 
 	http.ListenAndServe(":8090", nil)
 }
