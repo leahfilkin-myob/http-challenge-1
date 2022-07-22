@@ -51,6 +51,7 @@ func AllStats(w http.ResponseWriter, req *http.Request) {
 	 */
 	t, err := ioutil.ReadAll(req.Body)
 	if err != nil {
+		// TODO fix NaN error
 		panic(err)
 	}
 	defer req.Body.Close()
