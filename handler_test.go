@@ -19,27 +19,27 @@ func TestHandler(t *testing.T) {
 				WordCount:   4,
 				UniqueCount: 4,
 				MaxWord:     5,
-				AvgWord:     4.25,
+				AvgWord:     3.75,
 				// TODO IP
 			},
 		},
-		/*		"empty": {
-				body: "",
-				expected: response{
-					WordCount:   0,
-					UniqueCount: 0,
-					MaxWord:     0,
-					AvgWord:     0,
-					// TODO ip
-				},
-			},*/
+		"empty": {
+			body: "",
+			expected: response{
+				WordCount:   0,
+				UniqueCount: 0,
+				MaxWord:     0,
+				AvgWord:     0.0,
+				// TODO ip
+			},
+		},
 		"one word": {
 			body: "asdfasdf",
 			expected: response{
 				WordCount:   1,
 				UniqueCount: 1,
 				MaxWord:     8,
-				AvgWord:     8,
+				AvgWord:     8.0,
 				// TODO ip
 			},
 		},
@@ -49,7 +49,7 @@ func TestHandler(t *testing.T) {
 				WordCount:   4,
 				UniqueCount: 4,
 				MaxWord:     7,
-				AvgWord:     5.25,
+				AvgWord:     5.5,
 				// TODO ip
 			},
 		},
@@ -59,7 +59,7 @@ func TestHandler(t *testing.T) {
 				WordCount:   1,
 				UniqueCount: 1,
 				MaxWord:     10,
-				AvgWord:     10,
+				AvgWord:     10.0,
 				// TODO ip
 			},
 		},
@@ -83,6 +83,15 @@ func TestHandler(t *testing.T) {
 
 			if actual.WordCount != tt.expected.WordCount {
 				t.Errorf("got %d, want %d", actual.WordCount, tt.expected.WordCount)
+			}
+			if actual.UniqueCount != tt.expected.UniqueCount {
+				t.Errorf("got %d, want %d", actual.UniqueCount, tt.expected.UniqueCount)
+			}
+			if actual.MaxWord != tt.expected.MaxWord {
+				t.Errorf("got %d, want %d", actual.MaxWord, tt.expected.MaxWord)
+			}
+			if actual.AvgWord != tt.expected.AvgWord {
+				t.Errorf("got %v, want %v", actual.AvgWord, tt.expected.AvgWord)
 			}
 		})
 	}

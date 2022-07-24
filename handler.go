@@ -32,8 +32,8 @@ func TotalUniqueWordCount(t []string) int {
 func MaximumWordLength(t []string) int {
 	maxCount := 0
 	for _, v := range t {
-		if maxCount < len(v) {
-			maxCount = len(v)
+		if maxCount < len([]rune(v)) {
+			maxCount = len([]rune(v))
 		}
 	}
 	return maxCount
@@ -42,16 +42,16 @@ func MaximumWordLength(t []string) int {
 func AverageWordLength(t []string) float64 {
 	totalLetterCount := 0.0
 	for _, v := range t {
-		totalLetterCount += float64(len(v))
+		totalLetterCount += float64(len([]rune(v)))
+	}
+	if float64(len(t)) == 0.0 {
+		return 0
 	}
 	return totalLetterCount / float64(len(t))
 }
 func AllStats(w http.ResponseWriter, req *http.Request) {
-	/*	t, err := DecodeRequestBody(req.Body, w)
-	 */
 	t, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		// TODO fix NaN error
 		panic(err)
 	}
 	defer req.Body.Close()
@@ -70,15 +70,3 @@ func AllStats(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 }
-
-/*func DecodeRequestBody(body io.ReadCloser, w http.ResponseWriter) (text, error) {
-	var t text
-	dec := json.NewDecoder(body)
-	err := dec.Decode(&t)
-	if err != nil {
-		log.Printf("%v", err)
-		fmt.Fprintf(w, "Incorrect text format\n")
-	}
-	return t, err
-}
-*/
