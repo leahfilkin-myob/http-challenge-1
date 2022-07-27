@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -63,10 +64,21 @@ func TestHandler(t *testing.T) {
 				// TODO ip
 			},
 		},
+		"unique words": {
+			body: "brown brown brown fox",
+			expected: response{
+				WordCount:   4,
+				UniqueCount: 1,
+				MaxWord:     5,
+				AvgWord:     4.5,
+				// TODO ip
+			},
+		},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+			log.Printf("Name: %v\n", name)
 			in := strings.NewReader(tt.body)
 			req := httptest.NewRequest("POST", "http://example.com", in)
 			w := httptest.NewRecorder()

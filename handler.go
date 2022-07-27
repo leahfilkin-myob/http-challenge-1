@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -15,18 +16,26 @@ type response struct {
 	SourceIP    string
 }
 
+var stats response
+var allWords []string
+
 func TotalWordCount(t []string) int {
 	return len(t)
 }
 
 func TotalUniqueWordCount(t []string) int {
-	unique := make(map[string]struct{})
+	counts := make(map[string]int)
+	uniqueCount := 0
 	for _, v := range t {
-		if _, ok := unique[v]; !ok {
-			unique[v] = struct{}{}
+		counts[v]++
+	}
+	log.Printf("Counts: %v", counts)
+	for i, _ := range counts {
+		if counts[i] < 2 {
+			uniqueCount++
 		}
 	}
-	return len(unique)
+	return uniqueCount
 }
 
 func MaximumWordLength(t []string) int {
@@ -64,9 +73,57 @@ func AllStats(w http.ResponseWriter, req *http.Request) {
 		AverageWordLength(text),
 		req.RemoteAddr,
 	}
+
+	allWords = append(allWords, text...)
+	stats.WordCount = TotalWordCount(allWords)
+	stats.UniqueCount = TotalUniqueWordCount(allWords)
+	stats.MaxWord = MaximumWordLength(allWords)
+	stats.AvgWord = AverageWordLength(allWords)
+
 	w.WriteHeader(http.StatusOK)
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(resp); err != nil {
 		panic(err)
 	}
 }
+
+func GlobalStats(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(stats); err != nil {
+		panic(err)
+	}
+}
+
+/*func (h *GlobalStats) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	h.mu.Lock()
+
+	t, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		panic(err)
+	}
+	defer req.Body.Close()
+
+	text := strings.Fields(string(t))
+	resp := response{
+		TotalWordCount(text),
+		TotalUniqueWordCount(text),
+		MaximumWordLength(text),
+		AverageWordLength(text),
+		req.RemoteAddr,
+	}
+
+	h.rt.WordCount += resp.WordCount
+	h.rt.UniqueCount += resp.UniqueCount
+	h.rt.MaxWord += resp.MaxWord
+	h.rt.AvgWord += resp.AvgWord
+
+	w.WriteHeader(http.StatusOK)
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(resp); err != nil {
+		panic(err)
+	}
+
+	h.mu.Unlock()
+}
+*/
