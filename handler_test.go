@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -156,7 +155,6 @@ func TestGlobal(t *testing.T) {
 			if err := dec.Decode(&actual); err != nil {
 				t.Fatalf("failed to decode: %s", err)
 			}
-			log.Printf("Resp in test: %v", actual)
 			// TODO ask about defers in this context
 			defer resp.Body.Close()
 

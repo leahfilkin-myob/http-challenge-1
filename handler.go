@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"math"
 	"net/http"
 	"strings"
@@ -102,5 +101,4 @@ func (s *Server) GlobalStats(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		panic(err)
 	}
-	log.Printf("Resp in method: %v", s.resp)
 }
