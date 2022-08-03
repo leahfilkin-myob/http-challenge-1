@@ -15,9 +15,10 @@ http.HandleFunc("/metadata", handler.Metadata)
 http.Handle("/count", ch)*/
 
 func main() {
+	h := handler.NewServer()
 	log.Print("Starting handler...")
-	http.HandleFunc("/", handler.AllStats)
-	http.HandleFunc("/global", handler.GlobalStats)
+	http.HandleFunc("/", h.AllStats)
+	http.HandleFunc("/global", h.GlobalStats)
 
 	http.ListenAndServe(":8090", nil)
 }
