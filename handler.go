@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"strings"
 )
@@ -16,29 +17,32 @@ type response struct {
 	SourceIP    string
 }
 
-var stats response
-var allWords []string
+type Server struct {
+	allWords []string
+	resp     response
+}
 
-func TotalWordCount(t []string) int {
+func NewServer() *Server {
+	return &Server{
+		[]string{},
+		response{}}
+}
+
+func wordCount(t []string) int {
 	return len(t)
 }
 
-func TotalUniqueWordCount(t []string) int {
-	counts := make(map[string]int)
-	uniqueCount := 0
+func uniqueCount(t []string) int {
+	unique := make(map[string]struct{})
 	for _, v := range t {
-		counts[v]++
-	}
-	log.Printf("Counts: %v", counts)
-	for i, _ := range counts {
-		if counts[i] < 2 {
-			uniqueCount++
+		if _, ok := unique[v]; !ok {
+			unique[v] = struct{}{}
 		}
 	}
-	return uniqueCount
+	return len(unique)
 }
 
-func MaximumWordLength(t []string) int {
+func maxLength(t []string) int {
 	maxCount := 0
 	for _, v := range t {
 		if maxCount < len([]rune(v)) {
@@ -48,7 +52,7 @@ func MaximumWordLength(t []string) int {
 	return maxCount
 }
 
-func AverageWordLength(t []string) float64 {
+func avgLength(t []string) float64 {
 	totalLetterCount := 0.0
 	for _, v := range t {
 		totalLetterCount += float64(len([]rune(v)))
@@ -56,74 +60,47 @@ func AverageWordLength(t []string) float64 {
 	if float64(len(t)) == 0.0 {
 		return 0
 	}
-	return totalLetterCount / float64(len(t))
+	return math.Round(totalLetterCount/float64(len(t))*100) / 100
 }
-func AllStats(w http.ResponseWriter, req *http.Request) {
+func (s *Server) AllStats(w http.ResponseWriter, req *http.Request) {
 	t, err := ioutil.ReadAll(req.Body)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		panic(err)
 	}
 	defer req.Body.Close()
 
 	text := strings.Fields(string(t))
 	resp := response{
-		TotalWordCount(text),
-		TotalUniqueWordCount(text),
-		MaximumWordLength(text),
-		AverageWordLength(text),
+		wordCount(text),
+		uniqueCount(text),
+		maxLength(text),
+		avgLength(text),
 		req.RemoteAddr,
 	}
 
-	allWords = append(allWords, text...)
-	stats.WordCount = TotalWordCount(allWords)
-	stats.UniqueCount = TotalUniqueWordCount(allWords)
-	stats.MaxWord = MaximumWordLength(allWords)
-	stats.AvgWord = AverageWordLength(allWords)
+	s.allWords = append(s.allWords, text...)
 
 	w.WriteHeader(http.StatusOK)
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(resp); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		panic(err)
 	}
 }
 
-func GlobalStats(w http.ResponseWriter, req *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(stats); err != nil {
-		panic(err)
-	}
-}
-
-/*func (h *GlobalStats) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	h.mu.Lock()
-
-	t, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		panic(err)
-	}
-	defer req.Body.Close()
-
-	text := strings.Fields(string(t))
-	resp := response{
-		TotalWordCount(text),
-		TotalUniqueWordCount(text),
-		MaximumWordLength(text),
-		AverageWordLength(text),
-		req.RemoteAddr,
-	}
-
-	h.rt.WordCount += resp.WordCount
-	h.rt.UniqueCount += resp.UniqueCount
-	h.rt.MaxWord += resp.MaxWord
-	h.rt.AvgWord += resp.AvgWord
+func (s *Server) GlobalStats(w http.ResponseWriter, req *http.Request) {
+	s.resp.WordCount = wordCount(s.allWords)
+	s.resp.UniqueCount = uniqueCount(s.allWords)
+	s.resp.MaxWord = maxLength(s.allWords)
+	s.resp.AvgWord = avgLength(s.allWords)
 
 	w.WriteHeader(http.StatusOK)
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(resp); err != nil {
+
+	if err := enc.Encode(s.resp); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		panic(err)
 	}
-
-	h.mu.Unlock()
+	log.Printf("Resp in method: %v", s.resp)
 }
-*/
