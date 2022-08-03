@@ -5,4 +5,4 @@ run: cmd/server/main.go
 
 .PHONY: test
 test:
-	go test
+	go test -v
