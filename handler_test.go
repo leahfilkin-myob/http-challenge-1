@@ -11,12 +11,12 @@ import (
 func TestHandler(t *testing.T) {
 	tests := map[string]struct {
 		body       string
-		expected   response
+		expected   Response
 		statusCode int
 	}{
 		"happy path": {
 			body: "this is four words",
-			expected: response{
+			expected: Response{
 				WordCount:   4,
 				UniqueCount: 4,
 				MaxWord:     5,
@@ -27,7 +27,7 @@ func TestHandler(t *testing.T) {
 		},
 		"empty": {
 			body: "",
-			expected: response{
+			expected: Response{
 				WordCount:   0,
 				UniqueCount: 0,
 				MaxWord:     0,
@@ -38,7 +38,7 @@ func TestHandler(t *testing.T) {
 		},
 		"one word": {
 			body: "asdfasdf",
-			expected: response{
+			expected: Response{
 				WordCount:   1,
 				UniqueCount: 1,
 				MaxWord:     8,
@@ -49,7 +49,7 @@ func TestHandler(t *testing.T) {
 		},
 		"double space": {
 			body: "asd  asdfsll asdfasd     fasdf",
-			expected: response{
+			expected: Response{
 				WordCount:   4,
 				UniqueCount: 4,
 				MaxWord:     7,
@@ -60,7 +60,7 @@ func TestHandler(t *testing.T) {
 		},
 		"japanese": {
 			body: "これは4つの言葉です",
-			expected: response{
+			expected: Response{
 				WordCount:   1,
 				UniqueCount: 1,
 				MaxWord:     10,
@@ -71,7 +71,7 @@ func TestHandler(t *testing.T) {
 		},
 		"unique words": {
 			body: "brown brown brown fox",
-			expected: response{
+			expected: Response{
 				WordCount:   4,
 				UniqueCount: 2,
 				MaxWord:     5,
@@ -92,7 +92,7 @@ func TestHandler(t *testing.T) {
 
 			resp := w.Result()
 			dec := json.NewDecoder(resp.Body)
-			var actual response
+			var actual Response
 			if err := dec.Decode(&actual); err != nil {
 				t.Fatalf("failed to decode: %s", err)
 			}
@@ -118,7 +118,7 @@ func TestHandler(t *testing.T) {
 func TestGlobal(t *testing.T) {
 	tests := map[string]struct {
 		bodies     []string
-		expected   response
+		expected   Response
 		statusCode int
 	}{
 		"happy path": {
@@ -126,7 +126,7 @@ func TestGlobal(t *testing.T) {
 				"this is four words",
 				"this is now five words",
 			},
-			expected: response{
+			expected: Response{
 				WordCount:   9,
 				UniqueCount: 6,
 				MaxWord:     5,
@@ -151,7 +151,7 @@ func TestGlobal(t *testing.T) {
 			s.GlobalStats(x, req)
 			resp := x.Result()
 			dec := json.NewDecoder(resp.Body)
-			var actual response
+			var actual Response
 			if err := dec.Decode(&actual); err != nil {
 				t.Fatalf("failed to decode: %s", err)
 			}

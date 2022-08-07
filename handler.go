@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type response struct {
+type Response struct {
 	WordCount   int
 	UniqueCount int
 	MaxWord     int
@@ -18,13 +18,13 @@ type response struct {
 
 type Server struct {
 	allWords []string
-	resp     response
+	resp     Response
 }
 
 func NewServer() *Server {
 	return &Server{
 		[]string{},
-		response{}}
+		Response{}}
 }
 
 func wordCount(t []string) int {
@@ -70,7 +70,7 @@ func (s *Server) AllStats(w http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 
 	text := strings.Fields(string(t))
-	resp := response{
+	resp := Response{
 		wordCount(text),
 		uniqueCount(text),
 		maxLength(text),
@@ -89,16 +89,21 @@ func (s *Server) AllStats(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) GlobalStats(w http.ResponseWriter, req *http.Request) {
-	s.resp.WordCount = wordCount(s.allWords)
-	s.resp.UniqueCount = uniqueCount(s.allWords)
-	s.resp.MaxWord = maxLength(s.allWords)
-	s.resp.AvgWord = avgLength(s.allWords)
-
+	resp := s.CalculateGlobalStats()
 	w.WriteHeader(http.StatusOK)
 	enc := json.NewEncoder(w)
 
-	if err := enc.Encode(s.resp); err != nil {
+	if err := enc.Encode(resp); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		panic(err)
+	}
+}
+
+func (s *Server) CalculateGlobalStats() Response {
+	return Response{
+		WordCount:   wordCount(s.allWords),
+		UniqueCount: uniqueCount(s.allWords),
+		MaxWord:     maxLength(s.allWords),
+		AvgWord:     avgLength(s.allWords),
 	}
 }
