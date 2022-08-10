@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 type Response struct {
@@ -19,12 +20,13 @@ type Response struct {
 type Server struct {
 	allWords []string
 	resp     Response
+	mu       sync.Mutex
 }
 
 func NewServer() *Server {
 	return &Server{
-		[]string{},
-		Response{}}
+		allWords: []string{},
+		resp:     Response{}}
 }
 
 func wordCount(t []string) int {
@@ -78,7 +80,9 @@ func (s *Server) AllStats(w http.ResponseWriter, req *http.Request) {
 		req.RemoteAddr,
 	}
 
+	s.mu.Lock()
 	s.allWords = append(s.allWords, text...)
+	s.mu.Unlock()
 
 	w.WriteHeader(http.StatusOK)
 	enc := json.NewEncoder(w)
